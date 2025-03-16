@@ -1,0 +1,166 @@
+<!doctype html>
+
+{% load static %}
+
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>AI Mate</title>
+  </head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-image: url("{% static 'images/bc.gif' %}");
+    }
+    .chat-container {
+        width: 1000px;
+        height: 500px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        overflow-y: auto;
+        padding: 10px;
+        background: white;
+        background-image: url("{% static 'images/chatbc.gif' %}");
+    }
+    .message {
+        display: flex;
+        align-items: center;
+        margin: 10px 0;
+    }
+    .user {
+        justify-content: flex-start;
+
+    }
+    .ai {
+        justify-content: flex-end;
+    }
+    .message img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin: 0 10px;
+    }
+    .text {
+        background: #ddd;
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 60%;
+    }
+    .input-container {
+        display: flex;
+        flex-direction: column;
+        margin-top: 10px;
+        width: 400px;
+    }
+    textarea {
+        width: 100%;
+        height: 80px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        resize: none;
+    }
+    button {
+        padding: 10px;
+        margin-top: 5px;
+        border: none;
+        background: blue;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+</style>
+
+  <body>
+<!-- Just an image -->
+
+
+  <!-- Image and text -->
+<nav class="navbar navbar-light bg-light">
+    <a class="navbar-brand" href="/">
+      <img src="{% static 'images/robot-code.svg' %}" width="40" height="30" class="d-inline-block align-top" alt="">
+      Code Mate
+    </a>
+  </nav>
+
+
+  <div class="chat-container" id="chat"></div>
+  <div class="input-container">
+      <textarea id="userInput" placeholder="Type a message..."></textarea>
+      <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    function sendMessage() {
+        let input = document.getElementById("userInput");
+        let message = input.value.trim();
+        if (message === "") return;
+        
+        let chat = document.getElementById("chat");
+
+        // User message
+        let userMsg = document.createElement("div");
+        userMsg.className = "message user";
+        userMsg.innerHTML = `<img src='{% static 'images/human-asking-question.svg' %}' alt='User'><div class='text'>${message}</div>`;
+        chat.appendChild(userMsg);
+
+        // Send message to API
+        fetch("/botReplyWithApi", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message: message }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            let formattedResponse = formatResponse(data.response);
+            let aiMsg = document.createElement("div");
+            aiMsg.className = "message ai";
+            aiMsg.innerHTML = `<div class='text'>${formattedResponse}</div><img src='{% static 'images/robot-ai-reply.svg' %}' alt='AI'>`;
+            chat.appendChild(aiMsg);
+            chat.scrollTop = chat.scrollHeight;
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            let errorMsg = document.createElement("div");
+            errorMsg.className = "message ai";
+            errorMsg.innerHTML = `<div class='text'>Error getting response.</div><img src='{% static 'images/robot-ai-reply.svg' %}' alt='AI'>`;
+            chat.appendChild(errorMsg);
+        });
+
+        input.value = "";
+    }
+    function formatResponse(responseText) {
+        // Replace """...""" with proper code blocks
+        return responseText
+            .replace(/```csharp/g, '<pre><code class="language-csharp">') // Start C# code block
+            .replace(/```/g, '</code></pre>') // End any code block
+            .replace(/\n/g, '<br>'); // Convert new lines to <br> for better display
+    }
+</script>
+
+
+
+  </body>
+
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  </body>
+</html>
